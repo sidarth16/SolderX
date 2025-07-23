@@ -1,0 +1,60 @@
+# Byte-compiled / cache files
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+*.egg
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Virtual environments
+.env/
+.venv/
+env/
+venv/
+
+# VS Code / IDEs
+.vscode/
+.idea/
+*.swp
+
+# macOS / Linux
+.DS_Store
+*.sublime-workspace
+
+# pytest / coverage / test cache / Hypothesis testing
+htmlcov/
+.coverage
+.tox/
+.pytest_cache/
+nosetests.xml
+htmlcov/
+.cache
+.cache/
+*.cover
+*.log
+.hypothesis/
+
+# MyPy / Pylint / Bandit
+.mypy_cache/
+.dmypy.json
+.pyre/
+.pytype/
+
+# Jupyter / notebook
+*.ipynb_checkpoints
+
+# Secrets / credentials (if added later)
+*.env
+.env.*
+
+# SolderX logs (if any)
+solderx.log

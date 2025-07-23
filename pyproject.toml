@@ -1,0 +1,38 @@
+[project]
+name = "solderx"
+version = "0.1.0"
+description = "⚡️ SolderX – Melt Imports. Solder Solidity. Flatten Everything. 🔥"
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "MIT" }
+authors = [
+    { name = "Sidarth S", email = "ssidarth1999@email.com" }
+]
+dependencies = [
+    "requests >=2.28.0, <3.0.0",    # explorer api requests
+    "tomli"                         # using toml in python <3.11
+
+]
+keywords = ["solidity", "flattener", "smart-contracts", "cli", "etherscan", "imports"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Build Tools",
+    "Topic :: Utilities",
+    "Intended Audience :: Developers"
+]
+
+[project.urls]
+Homepage = "https://github.com/sidarth16/solderx"
+
+[project.scripts]
+solderx = "solderx.cli:main"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+addopts = "-v"
+testpaths = ["tests"]

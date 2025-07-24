@@ -42,7 +42,7 @@ def get_contract_source_from_explorer(address:str, chain:str, api_key:str=''):
             "license": license_type
         }
     else:
-        raise Exception(f"     {chain.upper()}-API Error: {data.get('message')} — {data.get('result')}")
+        raise Exception(f"\t{chain.upper()}-API Error: {data.get('message')} — {data.get('result')}")
 
 def extract_source_files_from_explorer(source_code: str) -> dict:
     """
@@ -64,11 +64,11 @@ def extract_source_files_from_explorer(source_code: str) -> dict:
         try:
             parsed_code = json.loads(source_code)  # normal JSON
         except JSONDecodeError:
-            print("ℹ️  Detected an already flattened source file (no JSON structure).")
+            print("ℹ️  Detected an already flattened source file (no JSON structure) !")
             return {"Flattened.sol": source_code.strip()}
 
     if not isinstance(parsed_code, dict):
-        raise ValueError("     Unexpected format: Parsed source is not a dictionary.")
+        raise ValueError("\tUnexpected format: Parsed source is not a dictionary.")
 
     sources_dict = parsed_code.get("sources", parsed_code)
 
@@ -120,12 +120,12 @@ def resolve_import_path_explorer(
         return suffix_matches[0]
     elif len(suffix_matches) > 1:
         print(f"[warn] Found Ambiguous match for {relative_import_path} in {current_key} → {suffix_matches}")
-        print(f"      => Using : suffix_matches[0] ")
+        print(f"\t => Using : suffix_matches[0] ")
         return suffix_matches[0]  # Or return None and force manual resolution
 
     # Not found
     raise FileNotFoundError(
-        f"     [error] Could not resolve:- import '{relative_import_path}' from '{current_key}'. File not found."
+        f"\t[error] Could not resolve:- import '{relative_import_path}' from '{current_key}'. File not found."
     )
 
 
@@ -172,9 +172,9 @@ def extract_and_validate_chain_address(contract_address:str, chain='eth'):
         contract_address = contract_address.strip().lower()
         chain = chain.strip().lower()
     if not contract_address.startswith("0x") or len(contract_address) != 42:
-        raise ValueError(f"     Invalid contract address: {contract_address}")
+        raise ValueError(f"\tInvalid contract address: {contract_address}")
     if not chain in ["eth", "polygon", "bsc", "base", "avalanche", "arbitrum", "optimism"]:
-        raise ValueError(f"     Unsupported chain '{chain}'\n       ✅ Supported: {', '.join(CHAIN_EXPLORERS)}")
+        raise ValueError(f"\tUnsupported chain '{chain}'\n\t✅ Supported: {', '.join(CHAIN_EXPLORERS)}")
 
     return contract_address, chain
 
@@ -182,7 +182,7 @@ def extract_and_validate_chain_address(contract_address:str, chain='eth'):
 def solder_scan(contract_address:str, chain='eth', api_key:str='', output_path:str=None, save_file:bool=True):
     
     contract_address, chain = extract_and_validate_chain_address(contract_address, chain)
-    print(f"🛠️  Soldering Contract : {contract_address} from {chain.upper()} . . . ")
+    print(f"🌐  Soldering Contract : {contract_address} from {chain.upper()} . . . ")
     
     # Extract from explorer
     response_data = get_contract_source_from_explorer(contract_address, chain, api_key)
@@ -196,7 +196,7 @@ def solder_scan(contract_address:str, chain='eth', api_key:str='', output_path:s
     sorted_paths = topological_sort(imports_path_map)
     flattened = flatten_files(sorted_paths, file_code_map)
     soldered_flat_code = normalize_spdx_license(flattened, license)
-    if save_file:
+    if output_path or save_file:
         if not output_path: output_path =  get_default_output_path(f"{contract_address}_{chain}")
         with open(output_path, 'w') as f:
             f.write(soldered_flat_code)

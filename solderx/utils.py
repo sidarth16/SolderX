@@ -1,4 +1,4 @@
-import re, sys, os
+import re, os
 from typing import List, Dict, Tuple, Optional
 from collections import Counter
 import json, toml
@@ -37,15 +37,13 @@ def parse_remappings(remappings: str = None) -> dict:
     # Helper to insert with collision check
     def insert(alias, path):
         if alias in remap_dict:
-            print(f"❌ Error: Duplicate remapping alias detected: '{alias}'")
-            sys.exit(1)
+            raise ValueError(f"\tDuplicate remapping alias detected: '{alias}'")
         remap_dict[alias.strip()] = path.strip()
 
     # Case: JSON/TOML file path
     if remappings.endswith('.json') or remappings.endswith('.toml'):
         if not os.path.isfile(remappings):
-            print(f"❌ Error: Remapping file '{remappings}' not found.")
-            sys.exit(1)
+            raise ValueError(f"\tRemapping file '{remappings}' not found.")
 
         try:
             with open(remappings, 'r') as f:
@@ -54,8 +52,7 @@ def parse_remappings(remappings: str = None) -> dict:
                     insert(alias, path)
 
         except Exception as e:
-            print(f"❌ Error: Failed to parse remapping file: {e}")
-            sys.exit(1)
+            raise ValueError(f"\tFailed to parse remapping file: {e}")
 
     # Case: Inline string like "@a=lib/a,@b=node_modules/b"
     else:
@@ -64,8 +61,7 @@ def parse_remappings(remappings: str = None) -> dict:
                 alias, path = pair.split('=')
                 insert(alias.strip(), path.strip())
         except ValueError:
-            print("❌ Error: Invalid remapping format. Use '@alias=path,...' or path to a json/toml file.")
-            sys.exit(1)
+            raise ValueError( "\tInvalid remapping format. Use '@alias=path,...' or path to a json/toml file.")
 
     return remap_dict
 
@@ -93,8 +89,7 @@ def get_default_output_path(input_path: str, ) -> str:
         parent_dir = os.path.dirname(os.path.normpath(input_path))
         return os.path.join(parent_dir, f"{folder_name}_{suffix}")
     else:
-        print(f"❌ Error: Invalid input path: {input_path}")
-        sys.exit(1)
+        raise ValueError( f"\tInvalid input path: {input_path}")
 
 # ---- Soldering utils ----
 
@@ -237,7 +232,7 @@ def topological_sort(imports_map: Dict[str, List[str]]) -> List[str]:
                 queue.append(neighbor)
 
     if len(result) != len(all_nodes):
-        raise ValueError("Cyclic import detected !")
+        raise ValueError( "\tCyclic import detected !")
 
     return result  # ordered list of files to include (from leaf to root)
 

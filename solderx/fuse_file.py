@@ -49,7 +49,7 @@ def resolve_import_path_file(current_base_dir: str, imp: str, remappings: Option
         if os.path.isfile(resolved_filepath):
             return resolved_filepath,  os.path.dirname(resolved_filepath)
 
-        raise FileNotFoundError(f"Could not resolve import '{imp}' from '{current_base_dir}'")
+        raise FileNotFoundError(f"\tCould not resolve import '{imp}' from '{current_base_dir}'")
                     
 
 def build_imports_map_and_extract_code_file(entry_filepath: str, remappings: Dict[str, str]) -> Tuple[Dict[str, List[str]], Dict[str, List[str]], Dict[str, str]]:
@@ -74,7 +74,7 @@ def build_imports_map_and_extract_code_file(entry_filepath: str, remappings: Dic
 
     def resolve_and_read(path: str) -> str:
         if not os.path.exists(path):
-            raise FileNotFoundError(f"File not found: {path}")
+            raise FileNotFoundError(f"\tFile not found: {path}")
         with open(path, "r", encoding="utf-8") as f:
             return f.read()
 
@@ -135,12 +135,12 @@ def solder_file(filepath:str, remappings:dict=None, output_path:str=None, save_f
     Returns:
         str: Soldered Flat code.
     """
-    print(f"⚡️ Soldering File : {filepath} . . . ")
+    print(f"🛠️  Soldering File : {filepath} . . . ")
     imports_path_map, _, file_code_map = build_imports_map_and_extract_code_file(filepath, remappings)
     print(f"> Fusing {len(file_code_map)} Solidity file(s) (including root)")
     sorted_paths = topological_sort(imports_path_map)
     soldered_flat_code = normalize_spdx_license(flatten_files(sorted_paths, file_code_map))
-    if save_file:
+    if output_path or save_file:
         if not output_path: output_path =  get_default_output_path(filepath)
         with open(output_path, 'w') as f:
             f.write(soldered_flat_code)

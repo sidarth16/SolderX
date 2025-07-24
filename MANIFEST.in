@@ -1,0 +1,6 @@
+include README.md
+include LICENSE
+include pyproject.toml
+recursive-include solderx *.py
+recursive-include solderx *.toml
+recursive-include solderx *.json

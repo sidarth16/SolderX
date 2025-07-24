@@ -65,13 +65,13 @@ def resolve_import_path_folder(
     # Check if the resolved path is outside the folder scope
     if not resolved_path.startswith(folder_root):
         raise FileNotFoundError(
-            f"     Import '{relative_import_path}' in '{current_key}' is outside the current folder scope."
+            f"\tImport '{relative_import_path}' in '{current_key}' is outside the current folder scope."
         )
     
     # Check if it's in the scanned keys
     if resolved_path not in all_keys:
         raise FileNotFoundError(
-            f"[     Could not resolve:- import '{relative_import_path}' from '{current_key}'"
+            f"\tCould not resolve:- import '{relative_import_path}' from '{current_key}.\n\t(File Not Found)'"
         )
     
     return resolved_path
@@ -119,7 +119,7 @@ def solder_folder(base_path:str, output_path:str=None, save_file:bool=True) -> s
     sorted_paths = topological_sort(imports_path_map)
     flattened_code = flatten_files(sorted_paths, file_code_map)
     soldered_flat_code = normalize_spdx_license(flattened_code)
-    if save_file:
+    if output_path or save_file:
         if not output_path: output_path =  get_default_output_path(base_path)
         with open(output_path, 'w') as f:
             f.write(soldered_flat_code)

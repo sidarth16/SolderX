@@ -1,26 +1,38 @@
 # ⚡️ SolderX – Fuse, Flatten & Forge Solidity Contracts 🔥
 > **The Smart Contract Flattener tool- that Melts your imports, Solders your contracts & Forges into a single fused output.**
-
+> 
 
 **SolderX** is a developer-first, all-in-one Solidity flattener that handles files, folders, and also verified contracts from various Explorers (on-the-fly) — with robust import resolutions, complex remapping support, SPDX unification, topological sorting, import ordering & cyclic detection.
 
-Whether you're preparing for Etherscan (re)verification, security reviews, or tooling integrations like Slither or Mythril, *SolderX* fuses your contracts into a clean, flattened `.sol` file in seconds.
+Whether you're preparing for Etherscan (re)verification, security reviews, or tooling integrations like Slither/Mythril, - *SolderX* fuses your contracts into a clean, flattened `.sol` file in seconds.
 
 ---
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![PyPI version](https://img.shields.io/pypi/v/solderx.svg)](https://pypi.org/project/solderx/)
+
+---
+## 📦 Installation
+```bash
+pip install solderx
+```
+**SolderX** is now available on [PyPI](https://pypi.org/project/solderx/) — install it in seconds and start soldering Solidity contracts effortlessly.
+>**✅ Requirements:** Python **3.8+**
+ 
 
 ---
 ## 💭 Why use SolderX ? :
-SolderX handles all:
-- ✅ Flatten a single file, full project, or verified explorer contract
-- ✅ Supports remappings, relative imports, and complex cycles
-- ✅ Parses and flattens in-memory — no .sol clutter from explorer downloads
->One CLI + Python tool — clean output, ready for audit.
+**SolderX** takes care of everything:
 
-Most flatteners break on remappings, folder imports, Etherscan blobs or doesnt support everything.
+- ✅ Flatten a single file, entire project folder, or verified contracts from explorers (like Etherscan)
+- ✅ Supports remappings, relative imports, and handles complex cyclic dependencies
+- ✅ Fully in-memory parsing — no `.sol` clutter or manual cleanup from explorer downloads
 
+> One powerful CLI + Python tool — clean, audit-ready output in seconds.
 
+Most flatteners break on remappings, folder imports, or explorer parsings — **SolderX** doesn't.
+
+---
 
 ## 🚀 Features Overview
 
@@ -199,30 +211,28 @@ We’re building this tool for Solidity developers like you.
 | Import deduplication | ✅ | ✅ | ✅ |
 | Handle empty files | ✅ | ✅ | ✅ |
 | Relative imports in remapped libs | ✅ | 🔧 N/A | 🔧 N/A |
-| **Relative import resolution** | ✅ | ✅ | ✅ |
+| Relative import resolution | ✅ | ✅ | ✅ |
 | Flattened & multi-file JSON parsing | N/A | N/A | ✅ |
 | Contract name parsing | N/A | N/A | ✅ |
-| **Chain support handling** | N/A | N/A | ✅ |
-| **Invalid address handling** | N/A | N/A | ✅ |
+| Chain support handling | N/A | N/A | ✅ |
+| Invalid address handling | N/A | N/A | ✅ |
 ---
 >All core behaviors are verified using Pytest.<br/>
->Want more scenarios covered? [Open an issue](https://github.com/your-repo/issues)
+>Want more scenarios covered? [Open an issue](https://github.com/sidarth16/solderx/issues)
 
 
 ## 📄 License
 
 **MIT License**  
-© 2025 — Built with ❤️ for devs who are tired of broken flatteners and half-baked tools.
+© 2025 — Crafted with ❤️ for developers and researchers seeking reliable, complete tooling.
 
 ---
 
-
-
 ## 💬 Support & Updates
 
-Stay tuned for updates — more chains, integrations, and dev-focused features are coming.
+We’re just getting started — expect support for more chains, deeper integrations, and smart dev-first features soon.
 
-👉 Follow development, submit issues, or request features on the GitHub repo.  
-Let’s Solidify and make Solidity flattening reliable, smart, and painless.
+👉 Track progress, report issues, or request enhancements on the [GitHub repo](https://github.com/sidarth16/solderx).<br/>
+Let’s **forge ahead with SolderX** — and make Solidity flattening reliable, intuitive, and developer-friendly.
 
 ---

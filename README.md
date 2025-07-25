@@ -1,15 +1,18 @@
 # ⚡️ SolderX – Fuse, Flatten & Forge Solidity Contracts 🔥
-> **The Smart Contract Flattener tool- that Melts your imports, Solders your contracts & Forges into a single fused output.**
+> **The Smart Contract Flattener tool- that melts imports, solders your contracts & forges a single fused `.sol` output.**
 > 
 
-**SolderX** is a developer-first, all-in-one Solidity flattener that handles files, folders, and also verified contracts from various Explorers (on-the-fly) — with robust import resolutions, complex remapping support, SPDX unification, topological sorting, import ordering & cyclic detection.
+**SolderX** is a developer-first, all-in-one Solidity flattener that handles files, folders, and verified contracts from various Explorers— all on-the-fly. It features
+robust import resolutions, advanced remapping support, SPDX unification, topological sorting, import deduplication & cyclic dependency detection.
 
-Whether you're preparing for Etherscan (re)verification, security reviews, or tooling integrations like Slither/Mythril, - *SolderX* fuses your contracts into a clean, flattened `.sol` file in seconds.
+🔍 **SolderX**  is built for researchers, auditors, solidity developers who need to flatten Solidity smart contracts for Etherscan (re)verification, security audits, or integrations with tools like Slither, Mythril, Foundry and Remix IDE.<br/>
+It ensures your flattened solidity output is clean and analysis-ready.
 
 ---
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE) 
 [![PyPI version](https://img.shields.io/pypi/v/solderx.svg)](https://pypi.org/project/solderx/)
+
 
 ---
 ## 📦 Installation
@@ -24,7 +27,7 @@ pip install solderx
 ## 💭 Why use SolderX ? :
 **SolderX** takes care of everything:
 
-- ✅ Flatten a single file, entire project folder, or verified contracts from explorers (like Etherscan)
+- ✅ Flatten a single file, entire project folder, or verified solidity contracts from explorers (like Etherscan)
 - ✅ Supports remappings, relative imports, and handles complex cyclic dependencies
 - ✅ Fully in-memory parsing — no `.sol` clutter or manual cleanup from explorer downloads
 
@@ -64,7 +67,7 @@ Most flatteners break on remappings, folder imports, or explorer parsings — **
 ⚠️ Note: This comparison is a working draft. Feature support for third-party tools may be evolving, and accuracy is based on current public documentation and observed behavior. Final evaluation pending deeper testing.
 ```
 
-| Feature                                    | [**SolderX**](https://github.com/your-org/solderx) | Hardhat / Foundry / Remix | [poa/solidity-flattener](https://github.com/poanetwork/solidity-flattener) | [solidity-flattener](https://github.com/BlockCatIO/solidity-flattener) | [truffle-flattener](https://github.com/nomiclabs/truffle-flattener) | [sol-merger](https://github.com/RyuuGan/sol-merger) | [slither-flatten](https://github.com/crytic/slither) |
+| Feature                                    | [**SolderX**](https://github.com/your-org/solderx) | [Hardhat](https://github.com/NomicFoundation/hardhat) / [Foundry](https://github.com/foundry-rs/foundry) / [Remix](https://github.com/ethereum/remix-project) | [poa/solidity-flattener](https://github.com/poanetwork/solidity-flattener) | [solidity-flattener](https://github.com/BlockCatIO/solidity-flattener) | [truffle-flattener](https://github.com/nomiclabs/truffle-flattener) | [sol-merger](https://github.com/RyuuGan/sol-merger) | [slither-flatten](https://github.com/crytic/slither) |
 |--------------------------------------------|----------------|-----------------------------|-------------------------|---------------------|--------------------|-------------|------------------|
 | 🧩 Standalone file flattening              | ✅             | ✅                          | ✅                      | ✅                  | ✅                 | ✅          | ✅               |
 | 📁 Folder/project flattening               | ✅             | ❌                          | ❌                      | ⚠️ Limited          | ⚠️ Partial         | ✅          | ❌               |
@@ -223,8 +226,15 @@ We’re building this tool for Solidity developers like you.
 
 ## 📄 License
 
-**MIT License**  
+**SolderX** is released under the **MIT License**  
 © 2025 — Crafted with ❤️ for developers and researchers seeking reliable, complete tooling.
+
+**Commercial use is allowed** provided that:
+- You include SolderX as a dependency (`pip install solderx`), OR
+- You give visible credit, e.g., “Flattened using SolderX” in your tool, docs, or repo.
+
+Please don’t rebrand or redistribute without attribution — let’s build openly and respectfully 🤝
+
 
 ---
 

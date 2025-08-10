@@ -4,7 +4,7 @@ version = "0.1.1"
 description = "⚡️ SolderX – Melt Imports. Solder Solidity. Flatten Everything 🔥"
 readme = "README.md"
 requires-python = ">=3.8"
-license = { text = "MIT" }
+license = "MIT"
 authors = [
     { name = "Sidarth S", email = "ssidarth1999@gmail.com" }
 ]

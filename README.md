@@ -5,14 +5,15 @@
 **SolderX** is a developer-first, all-in-one Solidity flattener that handles files, folders, and verified contracts from various Explorers— all on-the-fly. It features
 robust import resolutions, advanced remapping support, SPDX unification, topological sorting, import deduplication & cyclic dependency detection.
 
-🔍 **SolderX**  is built for researchers, auditors, solidity developers who need to flatten Solidity smart contracts for Etherscan (re)verification, security audits, or integrations with tools like Slither, Mythril, Foundry and Remix IDE.<br/>
+🔍 Built for researchers, auditors, solidity developers who need to flatten Solidity smart contracts for Etherscan (re)verification, security audits, or integrations with tools like Slither, Mythril, Foundry and Remix IDE.<br/>
 It ensures your flattened solidity output is clean and analysis-ready.
 
 ---
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE) 
 [![PyPI version](https://img.shields.io/pypi/v/solderx.svg)](https://pypi.org/project/solderx/)
-
+![GitHub Release Date](https://img.shields.io/github/release-date/sidarth16/SolderX)
+[![Downloads](https://pepy.tech/badge/solderx)](https://pepy.tech/project/solderx)
 
 ---
 ## 📦 Installation

@@ -5,8 +5,8 @@
 **SolderX** is a developer-first, all-in-one Solidity flattener that handles files, folders, and verified contracts from various Explorers— all on-the-fly. It features
 robust import resolutions, advanced remapping support, SPDX unification, topological sorting, import deduplication & cyclic dependency detection.
 
-🔍 Built for researchers, auditors, solidity developers who need to flatten Solidity smart contracts for Etherscan (re)verification, security audits, or integrations with tools like Slither, Mythril, Foundry and Remix IDE.<br/>
-It ensures your flattened solidity output is clean and analysis-ready.
+🔍 Built for researchers, auditors, solidity developers who need to flatten Solidity smart contracts for Etherscan (re)verification, security audits, or integrations with tools like Slither, Mythril, Foundry and Remix IDE.
+SolderX, thus ensures your flattened solidity output is clean and analysis-ready.
 
 ---
 
@@ -170,13 +170,13 @@ _ = solder_file("path/to/Contract.sol", output_path='./Contract_Flat.sol')
 
 ## 🔮 Roadmap & Future Additions
 
-- [ ] 🛠️ Aliasing via config file (`solidify.toml`)
-- [ ] 🌐 Github repo flattening
-- [ ] 🧹 Strip comments (inline, block, NatSpec - toggleable)
-- [ ] 🧪 `solc` output validation (AST / compile test)
-- [ ] 🔌 Plugin support: `slither`, `mythril`, `sourcify`
+- [ ] 🛠️ Aliasing via config file (`solderx.toml`)
+- [ ] 🌐 `Github` repo flattening
+- [ ] 🧹 Strip all comments (inline, block, NatSpec - toggleable)
 - [ ] 🔍 Flatten by contract name (regex filtering)
 - [ ] 🌈 Color logs and interactive CLI summaries
+- [ ] 🧪 `solc` output validation (AST / compile test)
+- [ ] 🔌 Plugin support: `slither`, `mythril`, `sourcify`
 
 ---
 

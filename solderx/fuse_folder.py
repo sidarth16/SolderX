@@ -63,7 +63,7 @@ def resolve_import_path_folder(
     folder_root = os.path.commonpath([os.path.dirname(p) for p in all_keys])
 
     # Check if the resolved path is outside the folder scope
-    if not resolved_path.startswith(folder_root):
+    if not is_within_folder_scope(folder_root, resolved_path):
         raise FileNotFoundError(
             f"\tImport '{relative_import_path}' in '{current_key}' is outside the current folder scope."
         )
@@ -75,6 +75,16 @@ def resolve_import_path_folder(
         )
     
     return resolved_path
+
+
+def is_within_folder_scope(folder_root: str, resolved_path: str) -> bool:
+    """
+    Return True when resolved_path stays inside folder_root.
+
+    Uses path-aware comparison instead of a raw string prefix so sibling
+    paths like `contracts_evil` do not accidentally pass a `contracts` check.
+    """
+    return os.path.commonpath([folder_root, resolved_path]) == folder_root
 
 def build_imports_map_and_extract_code(source_codes_map) :
     """

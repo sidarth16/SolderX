@@ -119,9 +119,10 @@ def resolve_import_path_explorer(
     if len(suffix_matches) == 1:
         return suffix_matches[0]
     elif len(suffix_matches) > 1:
-        print(f"[warn] Found Ambiguous match for {relative_import_path} in {current_key} → {suffix_matches}")
-        print(f"\t => Using : suffix_matches[0] ")
-        return suffix_matches[0]  # Or return None and force manual resolution
+        raise FileNotFoundError(
+            f"\t[error] Ambiguous import '{relative_import_path}' from '{current_key}'. "
+            f"Matches: {suffix_matches}. Please make the explorer source paths unambiguous."
+        )
 
     # Not found
     raise FileNotFoundError(

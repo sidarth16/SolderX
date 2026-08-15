@@ -78,6 +78,7 @@ def main():
     args = parser.parse_args()
     source = args.source.strip()
     output_path = args.output
+    api_key = args.api_key.strip() if args.api_key else ""
 
     if not os.path.exists(source) and not source.startswith("0x"):
         print(f"❌ Error: Invalid input path: {source}")
@@ -94,7 +95,7 @@ def main():
             solder_folder(source, output_path)
         
         elif source.startswith("0x") or ":" in source:
-            solder_scan(source, args.chain, api_key=args.api_key.strip(), output_path=output_path)
+            solder_scan(source, args.chain, api_key=api_key, output_path=output_path)
 
         else:
             print("❌ Unsupported input! Provide path to .sol file or a folder.")

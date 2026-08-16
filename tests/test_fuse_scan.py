@@ -2,6 +2,7 @@ import pytest
 import json
 from unittest.mock import patch, MagicMock
 from solderx import solder_scan
+from solderx.fuse_scan import resolve_import_path_explorer
 
 # Sample mock JSON source (multi-file project)
 MOCK_VERIFIED_SOURCE_JSON = {
@@ -122,6 +123,18 @@ def test_suffix_match_import_resolution(mock_get):
     flat_code = solder_scan("eth:0xabcdefabcdefabcdefabcdefabcdefabcdefabcd", save_file=False)
     assert "contract Context" in flat_code
     assert "contract Main" in flat_code
+
+
+def test_ambiguous_explorer_suffix_resolution_fails_loudly():
+    with pytest.raises(FileNotFoundError, match="Ambiguous import"):
+        resolve_import_path_explorer(
+            "Main.sol",
+            "./lib/Context.sol",
+            [
+                "src/contracts/lib/Context.sol",
+                "packages/contracts/lib/Context.sol",
+            ],
+        )
 
 @patch("solderx.fuse_scan.requests.get")
 def test_relative_import_up_one_level(mock_get):

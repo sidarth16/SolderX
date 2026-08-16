@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 import pytest
-from solderx.fuse_folder import solder_folder
+from solderx.fuse_folder import is_within_folder_scope, resolve_import_path_folder, solder_folder
 
 # Helper to write a Solidity file in a nested folder structure
 def write_sol_file(base, rel_path, content):
@@ -102,3 +102,26 @@ def test_import_outside_scope_raises_error(tmp_path):
     with pytest.raises(FileNotFoundError, match="outside the current folder scope"):
         solder_folder(str(tmp_path), save_file=False)
 
+
+def test_import_path_prefix_collision_is_rejected():
+    assert not is_within_folder_scope(
+        "/tmp/contracts",
+        "/tmp/contracts_evil/Context.sol",
+    )
+
+
+def test_import_path_prefix_collision_is_resolved_by_commonpath(tmp_path):
+    current_file = tmp_path / "contracts" / "Main.sol"
+    current_file.parent.mkdir(parents=True, exist_ok=True)
+    current_file.write_text("contract Main {}")
+
+    sibling_contract = tmp_path / "contracts_evil" / "Context.sol"
+    sibling_contract.parent.mkdir(parents=True, exist_ok=True)
+    sibling_contract.write_text("contract Context {}")
+
+    with pytest.raises(FileNotFoundError, match="outside the current folder scope"):
+        resolve_import_path_folder(
+            str(current_file),
+            "../contracts_evil/Context.sol",
+            [str(current_file)],
+        )

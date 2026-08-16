@@ -93,90 +93,258 @@ def get_default_output_path(input_path: str, ) -> str:
 
 # ---- Soldering utils ----
 
-def is_comment_position(content: str, i: int, state: dict) -> bool:
-    """Updates comment state and returns whether current index `i` is inside a comment."""
-    if content.startswith("/*", i):
-        state["inside_block_comment"] = True
-        return True
-    elif content.startswith("*/", i):
-        state["inside_block_comment"] = False
-        return True
-    elif content.startswith("//", i):
-        state["inside_inline_comment"] = True
-        return True
-    elif content[i] == '\n':
-        if state["inside_inline_comment"]:
-            state["inside_inline_comment"] = False
-        return False
-    return state["inside_block_comment"] or state["inside_inline_comment"]
+def _is_identifier_char(ch: str) -> bool:
+    return ch.isalnum() or ch in {"_", "$"}
+
+
+def _is_token_boundary(content: str, start: int, token: str) -> bool:
+    before_ok = start == 0 or not _is_identifier_char(content[start - 1])
+    after_index = start + len(token)
+    after_ok = after_index >= len(content) or not _is_identifier_char(content[after_index])
+    return before_ok and after_ok
+
+
+def _strip_comments_preserving_strings(content: str) -> str:
+    """
+    Remove line and block comments while leaving string literals intact.
+    """
+    result = []
+    i = 0
+    in_block_comment = False
+    in_line_comment = False
+    string_delim = None
+
+    while i < len(content):
+        ch = content[i]
+
+        if in_block_comment:
+            if content.startswith("*/", i):
+                in_block_comment = False
+                i += 2
+            else:
+                i += 1
+            continue
+
+        if in_line_comment:
+            if ch == "\n":
+                in_line_comment = False
+                result.append(ch)
+            i += 1
+            continue
+
+        if string_delim is not None:
+            result.append(ch)
+            if ch == "\\" and i + 1 < len(content):
+                result.append(content[i + 1])
+                i += 2
+                continue
+            if ch == string_delim:
+                string_delim = None
+            i += 1
+            continue
+
+        if content.startswith("//", i):
+            in_line_comment = True
+            i += 2
+            continue
+        if content.startswith("/*", i):
+            in_block_comment = True
+            i += 2
+            continue
+        if ch in {'"', "'"}:
+            string_delim = ch
+            result.append(ch)
+            i += 1
+            continue
+
+        result.append(ch)
+        i += 1
+
+    return "".join(result)
+
+
+def _extract_string_literals(content: str) -> List[str]:
+    strings = []
+    i = 0
+    in_block_comment = False
+    in_line_comment = False
+    string_delim = None
+
+    while i < len(content):
+        ch = content[i]
+
+        if in_block_comment:
+            if content.startswith("*/", i):
+                in_block_comment = False
+                i += 2
+            else:
+                i += 1
+            continue
+
+        if in_line_comment:
+            if ch == "\n":
+                in_line_comment = False
+            i += 1
+            continue
+
+        if string_delim is not None:
+            # This branch is only used while collecting a string literal.
+            i += 1
+            continue
+
+        if content.startswith("//", i):
+            in_line_comment = True
+            i += 2
+            continue
+        if content.startswith("/*", i):
+            in_block_comment = True
+            i += 2
+            continue
+        if ch not in {'"', "'"}:
+            i += 1
+            continue
+
+        string_delim = ch
+        i += 1
+        value = []
+        while i < len(content):
+            curr = content[i]
+            if curr == "\\" and i + 1 < len(content):
+                value.append(content[i + 1])
+                i += 2
+                continue
+            if curr == string_delim:
+                strings.append("".join(value))
+                string_delim = None
+                i += 1
+                break
+            value.append(curr)
+            i += 1
+        else:
+            raise ValueError("\tUnterminated string literal while scanning Solidity source.")
+
+    return strings
+
+
+def _find_import_statement_end(content: str, start: int) -> int:
+    i = start
+    in_block_comment = False
+    in_line_comment = False
+    string_delim = None
+
+    while i < len(content):
+        ch = content[i]
+
+        if in_block_comment:
+            if content.startswith("*/", i):
+                in_block_comment = False
+                i += 2
+            else:
+                i += 1
+            continue
+
+        if in_line_comment:
+            if ch == "\n":
+                in_line_comment = False
+            i += 1
+            continue
+
+        if string_delim is not None:
+            if ch == "\\" and i + 1 < len(content):
+                i += 2
+                continue
+            if ch == string_delim:
+                string_delim = None
+            i += 1
+            continue
+
+        if content.startswith("//", i):
+            in_line_comment = True
+            i += 2
+            continue
+        if content.startswith("/*", i):
+            in_block_comment = True
+            i += 2
+            continue
+        if ch in {'"', "'"}:
+            string_delim = ch
+            i += 1
+            continue
+        if ch == ";":
+            return i + 1
+        i += 1
+
+    raise ValueError("\tUnterminated import statement in Solidity source.")
 
 
 def extract_and_remove_imports(content: str) -> Tuple[List[str], List[str], str]:
     """
-    Extracts all import statements (including multi-line and destructured imports)
-    while skipping comments, and removes them from the code.
+    Extract import statements from Solidity source while skipping comments
+    and preserving string literals as opaque text.
     """
-    state = {
-        "inside_block_comment": False,
-        "inside_inline_comment": False,
-    }
-
     imports_raw = []
-    semicolons = []
     import_blocks = []
 
-    inside_module = False
     i = 0
     while i < len(content):
-        if inside_module:
-            i += 1
+        ch = content[i]
+
+        if content.startswith("//", i):
+            newline = content.find("\n", i + 2)
+            if newline == -1:
+                break
+            i = newline + 1
             continue
 
-        if is_comment_position(content, i, state):
-            i += 1
+        if content.startswith("/*", i):
+            end_comment = content.find("*/", i + 2)
+            if end_comment == -1:
+                break
+            i = end_comment + 2
             continue
 
-        if any(content.startswith(kw, i) for kw in ['library', 'interface', 'contract', 'function']):
-            inside_module = True
+        if ch in {'"', "'"}:
+            quote = ch
             i += 1
-            continue
-
-        if content.startswith("import", i):
-            start = i
-            while i < len(content) and content[i] != ';':
-                if is_comment_position(content, i, state):
-                    i += 1
+            while i < len(content):
+                curr = content[i]
+                if curr == "\\" and i + 1 < len(content):
+                    i += 2
                     continue
+                if curr == quote:
+                    i += 1
+                    break
                 i += 1
-            i += 1  # include the semicolon
-            raw_stmt = content[start:i]
+            else:
+                raise ValueError("\tUnterminated string literal while scanning Solidity source.")
+            continue
 
-            # Strip comments from the raw import block
-            cleaned = re.sub(r'//.*', '', raw_stmt)  # remove line comments
-            cleaned = re.sub(r'/\*[\s\S]*?\*/', '', cleaned)  # remove block comments
-            cleaned = ' '.join(cleaned.split())
-            imports_raw.append(cleaned)
-            import_blocks.append((start, i))
-        else:
-            if content[i] == ';':
-                semicolons.append(i)
-            i += 1
+        if content.startswith("import", i) and _is_token_boundary(content, i, "import"):
+            start = i
+            end = _find_import_statement_end(content, i)
+            raw_stmt = content[start:end]
+            cleaned_raw = " ".join(_strip_comments_preserving_strings(raw_stmt).split())
+            imports_raw.append(cleaned_raw)
+            import_blocks.append((start, end))
+            i = end
+            continue
 
-    # Reconstruct code without import blocks
+        i += 1
+
+    import_paths = []
+    for imp in imports_raw:
+        import_paths.extend(_extract_string_literals(imp))
+
+    if not import_blocks:
+        return import_paths, imports_raw, content
+
     result = []
     last_index = 0
     for start, end in import_blocks:
         result.append(content[last_index:start])
         last_index = end
     result.append(content[last_index:])
-    code = ''.join(result)
-
-    # Extract import paths from cleaned imports
-    import_paths = []
-    for imp in imports_raw:
-        matches = re.findall(r'"([^"]+)"|\'([^\']+)\'', imp)
-        for m in matches:
-            import_paths.append(m[0] or m[1])
+    code = "".join(result)
 
     return import_paths, imports_raw, code
 
@@ -261,4 +429,3 @@ def normalize_spdx_license(content: str, spdx_override: Optional[str] = None ) -
         header = ""
 
     return header + content_wo_spdx
-

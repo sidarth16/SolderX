@@ -136,7 +136,7 @@ def extract_and_remove_imports(content: str) -> Tuple[List[str], List[str], str]
             i += 1
             continue
 
-        if any(content.startswith(kw, i) for kw in ['library', 'interface', 'contract']):
+        if any(content.startswith(kw, i) for kw in ['library', 'interface', 'contract', 'function']):
             inside_module = True
             i += 1
             continue

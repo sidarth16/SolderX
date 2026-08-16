@@ -1,6 +1,7 @@
 import os
 from typing import List, Dict, Set, Tuple, Optional
-from solderx.utils import *
+from solderx.core import build_import_graph_from_entry, flatten_sorted_sources
+from solderx.utils import get_default_output_path, normalize_spdx_license, topological_sort
 
 def resolve_import_path_file(current_base_dir: str, imp: str, remappings: Optional[Dict[str, str]] = None) -> Tuple[str, str]:
         """
@@ -53,73 +54,16 @@ def resolve_import_path_file(current_base_dir: str, imp: str, remappings: Option
                     
 
 def build_imports_map_and_extract_code_file(entry_filepath: str, remappings: Dict[str, str]) -> Tuple[Dict[str, List[str]], Dict[str, List[str]], Dict[str, str]]:
-    """
-    Recursively builds an import graph from a Solidity file.
-    Supports relative and remapped imports (e.g. @openzeppelin).
-    
-    Args:
-        entry_filepath (str): Entry Solidity file (absolute or relative).
-        remappings (Dict[str, str]): Mapping from virtual prefixes to real paths.
-    
-    Returns:
-        Tuple containing:
-            - imports_path_map: actual resolved file dependencies
-            - imports_raw_map: raw import strings as seen in source
-            - file_code_map: mapping of absolute file paths to cleaned source code
-    """
-    imports_raw_map: Dict[str, List[str]] = {}
-    imports_path_map: Dict[str, List[str]] = {}
-    file_code_map: Dict[str, str] = {}
-    visited: Set[str] = set()
-
-    def resolve_and_read(path: str) -> str:
-        if not os.path.exists(path):
-            raise FileNotFoundError(f"\tFile not found: {path}")
-        with open(path, "r", encoding="utf-8") as f:
-            return f.read()
-
-    def dfs(current_filepath: str, current_base_dir: str):
-        current_filepath = os.path.abspath(current_filepath)
-
-        if current_filepath in visited:
-            return
-        visited.add(current_filepath)
-
-        code = resolve_and_read(current_filepath)
-        imports_path, imports_raw, code = extract_and_remove_imports(code)
-
-        # Update code without imports
-        file_code_map[current_filepath] = code
-        imports_raw_map[current_filepath] = imports_raw
-
-        resolved_imports_path = []
-        for imp in imports_path:
-            resolved_imp_path, new_base_dir = resolve_import_path_file(current_base_dir, imp, remappings)
-            resolved_imports_path.append(resolved_imp_path)
-            dfs(resolved_imp_path, new_base_dir)
-        imports_path_map[current_filepath] = resolved_imports_path
-
-    abs_entry = os.path.abspath(entry_filepath)
-    dfs(abs_entry, os.path.dirname(abs_entry))
-    return imports_path_map, imports_raw_map, file_code_map
+    return build_import_graph_from_entry(entry_filepath, lambda current_base_dir, imp: resolve_import_path_file(current_base_dir, imp, remappings))
 
 
 def flatten_files(sorted_paths: List[str], file_code_map: Dict[str, str]) -> str:
-    flattened_code = []
-    cwd = os.getcwd()   # or base_dir can be manually specified if needed
-
-    for path in sorted_paths:
-        abs_path = os.path.abspath(path)
-        rel_path = os.path.relpath(abs_path, cwd)
-
-        code = file_code_map.get(abs_path)
-        if not code:
-            print(f"[warn] No content for file: {abs_path}")
-            continue
-        
-        flattened_code.append(f"// File: {rel_path}\n" + code + "\n")
-        
-    return "\n".join(flattened_code)
+    cwd = os.getcwd()
+    return flatten_sorted_sources(
+        sorted_paths,
+        file_code_map,
+        lambda path: os.path.relpath(os.path.abspath(path), cwd),
+    )
 
 
 def solder_file(filepath:str, remappings:dict=None, output_path:str=None, save_file:bool=True) -> str:

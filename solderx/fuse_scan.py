@@ -1,7 +1,8 @@
 from typing import List, Dict
 import requests, json, os
 from json.decoder import JSONDecodeError
-from solderx.utils import *
+from solderx.core import build_import_graph_from_sources, flatten_sorted_sources
+from solderx.utils import get_default_output_path, normalize_spdx_license, topological_sort
 
 CHAIN_EXPLORERS = {
     "eth": "https://api.etherscan.io/api",
@@ -131,40 +132,11 @@ def resolve_import_path_explorer(
 
 
 def build_imports_map_and_extract_code(source_files) :
-    """
-    Recursively builds an import graph from a solidity file.
-    Supports relative and remapped imports (e.g. @openzeppelin).
-    """
-    imports_raw_map: Dict[str, List[str]] = {}
-    imports_path_map: Dict[str, List[str]] = {}
-    file_code_map: Dict[str, str] = {}
-    all_filenames = list(source_files.keys())
-
-    for filename, code in source_files.items():
-        imports_path, imports_raw, code = extract_and_remove_imports(code)
-        file_code_map[filename] = code
-        imports_raw_map[filename] = imports_raw
-        
-        import_paths = []
-        for imp in imports_path:
-            resolved_imp_path = resolve_import_path_explorer(filename, imp, all_filenames)
-            import_paths.append(resolved_imp_path)
-        imports_path_map[filename] = import_paths
-        
-    return imports_path_map, imports_raw_map, file_code_map
+    return build_import_graph_from_sources(source_files, resolve_import_path_explorer)
 
 
 def flatten_files(sorted_paths: List[str], file_code_map: Dict[str, str]) -> str:
-    flattened_code = []
-
-    for path in sorted_paths:
-        code = file_code_map.get(path)
-        if not code:
-            print(f"[warn] No content for file: {path}")
-            continue
-        flattened_code.append(f"// File: {path}\n" + code + "\n")
-        
-    return "\n".join(flattened_code)
+    return flatten_sorted_sources(sorted_paths, file_code_map, lambda path: path)
 
 
 def extract_and_validate_chain_address(contract_address:str, chain='eth'):

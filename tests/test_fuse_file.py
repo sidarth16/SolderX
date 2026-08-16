@@ -257,6 +257,27 @@ def test_empty_file_import(tmp_path):
     assert "// just a comment" in code  # Optional: you may choose to strip these
 
 
+def test_string_keyword_cutoff_regression(tmp_path):
+    lib = tmp_path / "Lib.sol"
+    lib.write_text("contract Lib {}")
+
+    main = tmp_path / "Main.sol"
+    main.write_text(
+        '''
+pragma solidity ^0.8.0;
+string constant NOTE = "contract";
+import "./Lib.sol";
+contract Main {}
+'''
+    )
+
+    code = solder_file(str(main), save_file=False)
+
+    assert "contract Lib" in code
+    assert "contract Main" in code
+    assert "import" not in code
+
+
 def test_relative_import_inside_remapped_lib(tmp_path):
     # Structure:
     # lib/oz/contracts/access/Ownable.sol

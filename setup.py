@@ -2,14 +2,14 @@ from setuptools import setup, find_packages
 
 setup(
     name="solderx",
-    version="0.1.1",
-    description="⚡️ SolderX – Melt Imports. Solder Solidity. Flatten Everything 🔥",
+    version="0.1.2",
+    description="⚡️ SolderX – Melt Imports. Solder Solidity. Flatten Everything",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
     author="Sidarth S",
     author_email="ssidarth1999@gmail.com",
     url="https://github.com/sidarth16/solderx",
-    license="MIT",
+    license="Apache-2.0",
     packages=find_packages(include=["solderx"]),
     include_package_data=True,
     python_requires=">=3.8",
@@ -32,7 +32,7 @@ setup(
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: MIT License",
+        "License :: OSI Approved :: Apache Software License",
         "Operating System :: OS Independent",
         "Topic :: Software Development :: Build Tools",
         "Topic :: Utilities",

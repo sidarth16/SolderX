@@ -2,7 +2,6 @@
 >Fuse, Flatten & Forge Solidity Contracts <br/>
 
 **Lightweight Solidity source flattener tool & dependency resolver.**
-> 
 
 SolderX is a developer-first Solidity flattener that handles local files, project folders, and verified contracts from blockchain explorers. Explorer sources are resolved directly from the API response and flattened on the fly, without requiring the source tree to be saved locally first.
 
@@ -176,8 +175,6 @@ _ = solder_file("path/to/Contract.sol", output_path='./Contract_Flat.sol')
 - **Pipeline-ready** for CI/CD - security scans, or deployment packaging
 
 ---
-
----
 ## Test Summary : 
 | Category | `solder_file()` | `solder_folder()` | `solder_scan()` |
 | --- | --- | --- | --- |
@@ -200,7 +197,7 @@ _ = solder_file("path/to/Contract.sol", output_path='./Contract_Flat.sol')
 | Contract name parsing | N/A | N/A | ✅ |
 | Chain support handling | N/A | N/A | ✅ |
 | Invalid address handling | N/A | N/A | ✅ |
----
+
 >All core behaviors are verified using Pytest.<br/>
 >Want more scenarios covered? [Open an issue](https://github.com/sidarth16/solderx/issues)
 

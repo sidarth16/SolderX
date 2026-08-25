@@ -4,37 +4,62 @@ from json.decoder import JSONDecodeError
 from solderx.core import build_import_graph_from_sources, flatten_sorted_sources
 from solderx.utils import get_default_output_path, normalize_spdx_license, topological_sort
 
-CHAIN_EXPLORERS = {
-    "eth": "https://api.etherscan.io/api",
-    "polygon": "https://api.polygonscan.com/api",
-    "bsc": "https://api.bscscan.com/api",
-    "base": "https://api.basescan.org/api",
-    "arbitrum": "https://api.arbiscan.io/api",
-    "optimism": "https://api-optimistic.etherscan.io/api",
-    "avalanche": "https://api.snowtrace.io/api",
+EXPLORER_API_URL = "https://api.etherscan.io/v2/api"
+CHAIN_IDS = {
+    "eth": 1,
+    "polygon": 137,
+    "bsc": 56,
+    "base": 8453,
+    "arbitrum": 42161,
+    "optimism": 10,
+    "avalanche": 43114,
 }
 
 def get_contract_source_from_explorer(address:str, chain:str, api_key:str=''):
-    
-    api_url = CHAIN_EXPLORERS[chain]
-
+    chain_id = CHAIN_IDS[chain]
     params = {
         "module": "contract",
         "action": "getsourcecode",
         "address": address,
-        "apikey": api_key
+        "apikey": api_key,
+        "chainid": chain_id,
     }
-    
-    response = requests.get(api_url, params=params)
-    data = response.json()
 
-    if data["status"] == "1":
-        result = data["result"][0]
-        source_code = result["SourceCode"]
-        contract_name = result["ContractName"]
-        compiler_version = result.get("CompilerVersion")
-        license_type =  result.get("LicenseType")
+    try:
+        response = requests.get(EXPLORER_API_URL, params=params, timeout=10)
+        response.raise_for_status()
+    except requests.HTTPError as exc:
+        raise Exception(f"\t{chain.upper()}-API HTTP Error: {exc}") from exc
+    except requests.RequestException as exc:
+        raise Exception(f"\t{chain.upper()}-API request failed: {exc}") from exc
 
+    try:
+        data = response.json()
+    except ValueError as exc:
+        raise Exception(f"\t{chain.upper()}-API Error: malformed JSON response") from exc
+
+    if not isinstance(data, dict):
+        raise Exception(f"\t{chain.upper()}-API Error: unexpected response structure")
+
+    status = str(data.get("status", ""))
+    message = data.get("message")
+    result = data.get("result")
+
+    if status == "1":
+        if not isinstance(result, list) or not result:
+            raise Exception(f"\t{chain.upper()}-API Error: unexpected response structure")
+
+        contract_result = result[0]
+        if not isinstance(contract_result, dict):
+            raise Exception(f"\t{chain.upper()}-API Error: unexpected response structure")
+
+        source_code = contract_result.get("SourceCode")
+        contract_name = contract_result.get("ContractName")
+        compiler_version = contract_result.get("CompilerVersion")
+        license_type = contract_result.get("LicenseType")
+
+        if source_code is None or contract_name is None:
+            raise Exception(f"\t{chain.upper()}-API Error: unexpected response structure")
 
         return {
             "name": contract_name,
@@ -42,8 +67,22 @@ def get_contract_source_from_explorer(address:str, chain:str, api_key:str=''):
             "compiler": compiler_version,
             "license": license_type
         }
-    else:
-        raise Exception(f"\t{chain.upper()}-API Error: {data.get('message')} — {data.get('result')}")
+
+    error_message = message or "API error"
+    error_result = result
+    error_text = " — ".join(
+        str(part) for part in (error_message, error_result) if part not in (None, "")
+    )
+    lower_error_text = error_text.lower()
+
+    if "not verified" in lower_error_text or "unverified" in lower_error_text:
+        raise Exception(f"\t{chain.upper()}-API Error: contract source code not verified")
+    if "invalid api key" in lower_error_text or "missing api key" in lower_error_text:
+        raise Exception(f"\t{chain.upper()}-API Error: invalid API key")
+    if "rate limit" in lower_error_text or "too many requests" in lower_error_text:
+        raise Exception(f"\t{chain.upper()}-API Error: rate limit exceeded")
+
+    raise Exception(f"\t{chain.upper()}-API Error: {error_text}")
 
 def extract_source_files_from_explorer(source_code: str) -> dict:
     """
@@ -144,10 +183,12 @@ def extract_and_validate_chain_address(contract_address:str, chain='eth'):
         chain, contract_address = contract_address.split(":")
         contract_address = contract_address.strip().lower()
         chain = chain.strip().lower()
+    else:
+        chain = chain.strip().lower()
     if not contract_address.startswith("0x") or len(contract_address) != 42:
         raise ValueError(f"\tInvalid contract address: {contract_address}")
-    if not chain in ["eth", "polygon", "bsc", "base", "avalanche", "arbitrum", "optimism"]:
-        raise ValueError(f"\tUnsupported chain '{chain}'\n\t✅ Supported: {', '.join(CHAIN_EXPLORERS)}")
+    if not chain in CHAIN_IDS:
+        raise ValueError(f"\tUnsupported chain '{chain}'\n\t✅ Supported: {', '.join(CHAIN_IDS)}")
 
     return contract_address, chain
 

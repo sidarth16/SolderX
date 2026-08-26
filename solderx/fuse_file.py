@@ -1,7 +1,7 @@
 import os
 from typing import List, Dict, Set, Tuple, Optional
 from solderx.core import build_import_graph_from_entry, flatten_sorted_sources
-from solderx.utils import get_default_output_path, normalize_spdx_license, topological_sort
+from solderx.utils import apply_remapping, get_default_output_path, normalize_spdx_license, topological_sort
 
 def resolve_import_path_file(current_base_dir: str, imp: str, remappings: Optional[Dict[str, str]] = None) -> Tuple[str, str]:
         """
@@ -29,18 +29,8 @@ def resolve_import_path_file(current_base_dir: str, imp: str, remappings: Option
                 return resolved_filepath, os.path.dirname(resolved_filepath)
 
         # 2. Try remappings (match longest prefix)
-        longest_match = None
-        for prefix in remappings:
-            # Ensure trailing slash for matching
-            normalized_prefix = prefix if prefix.endswith('/') else prefix + '/'
-            if imp.startswith(normalized_prefix):
-                if longest_match is None or len(normalized_prefix) > len(longest_match):
-                    longest_match = normalized_prefix
-
-        if longest_match:
-            remapped_base_dir = remappings[longest_match.rstrip('/')]  # remove trailing slash if present
-            remaining_path = imp[len(longest_match):]  # strip prefix from import
-            remapped_filepath = os.path.normpath(os.path.join(remapped_base_dir, remaining_path))
+        remapped_filepath = apply_remapping(imp, remappings)
+        if remapped_filepath:
             if os.path.isfile(remapped_filepath):
                 return remapped_filepath, os.path.dirname(remapped_filepath)
             

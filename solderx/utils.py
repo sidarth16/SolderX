@@ -13,7 +13,7 @@ COLORS = {
 
 # ---- Arg Parser utils ----
 
-def parse_remappings(remappings: str = None) -> dict:
+def parse_remappings(remappings=None) -> dict:
     """
     Parses remappings from a JSON/TOML file or inline string.
 
@@ -40,8 +40,11 @@ def parse_remappings(remappings: str = None) -> dict:
             raise ValueError(f"\tDuplicate remapping alias detected: '{alias}'")
         remap_dict[alias.strip()] = path.strip()
 
+    # Case: explorer/compiler-style list of alias=path pairs
+    if isinstance(remappings, (list, tuple)):
+        pairs = remappings
     # Case: JSON/TOML file path
-    if remappings.endswith('.json') or remappings.endswith('.toml'):
+    elif remappings.endswith('.json') or remappings.endswith('.toml'):
         if not os.path.isfile(remappings):
             raise ValueError(f"\tRemapping file '{remappings}' not found.")
 
@@ -50,20 +53,42 @@ def parse_remappings(remappings: str = None) -> dict:
                 raw = json.load(f) if remappings.endswith('.json') else toml.load(f)
                 for alias, path in raw.items():
                     insert(alias, path)
+            return remap_dict
 
         except Exception as e:
             raise ValueError(f"\tFailed to parse remapping file: {e}")
 
     # Case: Inline string like "@a=lib/a,@b=node_modules/b"
     else:
-        try:
-            for pair in remappings.split(','):
-                alias, path = pair.split('=')
-                insert(alias.strip(), path.strip())
-        except ValueError:
-            raise ValueError( "\tInvalid remapping format. Use '@alias=path,...' or path to a json/toml file.")
+        pairs = remappings.split(',')
+
+    try:
+        for pair in pairs:
+            alias, path = pair.split('=', 1)
+            insert(alias.strip(), path.strip())
+    except (AttributeError, ValueError):
+        raise ValueError( "\tInvalid remapping format. Use '@alias=path,...' or path to a json/toml file.")
 
     return remap_dict
+
+
+def apply_remapping(import_path: str, remappings: Dict[str, str]) -> Optional[str]:
+    """Apply the longest matching import prefix to an import path."""
+    longest_match = None
+    for prefix in remappings or {}:
+        normalized_prefix = prefix if prefix.endswith('/') else prefix + '/'
+        if import_path.startswith(normalized_prefix):
+            if longest_match is None or len(normalized_prefix) > len(longest_match):
+                longest_match = normalized_prefix
+
+    if longest_match is None:
+        return None
+
+    remapped_base = remappings.get(longest_match.rstrip('/'))
+    if remapped_base is None:
+        remapped_base = remappings[longest_match]
+    remaining_path = import_path[len(longest_match):]
+    return os.path.normpath(os.path.join(remapped_base, remaining_path))
 
 def get_default_output_path(input_path: str, ) -> str:
     """

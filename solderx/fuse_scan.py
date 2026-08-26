@@ -2,7 +2,13 @@ from typing import List, Dict
 import requests, json, os
 from json.decoder import JSONDecodeError
 from solderx.core import build_import_graph_from_sources, flatten_sorted_sources
-from solderx.utils import get_default_output_path, normalize_spdx_license, topological_sort
+from solderx.utils import (
+    apply_remapping,
+    get_default_output_path,
+    normalize_spdx_license,
+    parse_remappings,
+    topological_sort,
+)
 
 EXPLORER_API_URL = "https://api.etherscan.io/v2/api"
 CHAIN_IDS = {
@@ -104,13 +110,15 @@ def extract_source_files_from_explorer(source_code: str) -> dict:
         try:
             parsed_code = json.loads(source_code)  # normal JSON
         except JSONDecodeError:
-            print("ℹ️  Detected an already flattened source file (no JSON structure) !")
-            return {"Flattened.sol": source_code.strip()}
+            print("  Detected an already flattened source file (no JSON structure) !")
+            return {"Flattened.sol": source_code.strip()}, {}
 
     if not isinstance(parsed_code, dict):
         raise ValueError("\tUnexpected format: Parsed source is not a dictionary.")
 
     sources_dict = parsed_code.get("sources", parsed_code)
+    settings = parsed_code.get("settings", {})
+    remappings = parse_remappings(settings.get("remappings", [])) if isinstance(settings, dict) else {}
 
     source_files = {
         filename: file_data["content"]
@@ -118,14 +126,15 @@ def extract_source_files_from_explorer(source_code: str) -> dict:
         if isinstance(file_data, dict) and "content" in file_data
     }
 
-    return source_files
+    return source_files, remappings
 
 
 
 def resolve_import_path_explorer(
     current_key: str,
     relative_import_path: str,
-    all_keys: List[str]
+    all_keys: List[str],
+    remappings: Dict[str, str] = None,
 ) -> str:
     """
     Resolves Direct & Relative import path (e.g., '../utils/Context.sol') 
@@ -143,6 +152,19 @@ def resolve_import_path_explorer(
      # Direct match
     if relative_import_path in all_keys:
         return relative_import_path
+
+    remapped_path = apply_remapping(relative_import_path, remappings or {})
+    if remapped_path:
+        if remapped_path in all_keys:
+            return remapped_path
+        remapped_suffix_matches = [k for k in all_keys if k.endswith(remapped_path)]
+        if len(remapped_suffix_matches) == 1:
+            return remapped_suffix_matches[0]
+        if len(remapped_suffix_matches) > 1:
+            raise FileNotFoundError(
+                f"\t[error] Ambiguous remapped import '{relative_import_path}'. "
+                f"Matches: {remapped_suffix_matches}."
+            )
 
     # Get base dir of the current key
     current_dir = os.path.dirname(current_key)
@@ -165,13 +187,22 @@ def resolve_import_path_explorer(
         )
 
     # Not found
+    if remapped_path:
+        raise FileNotFoundError(
+            f"\t[error] Could not resolve remapped import '{relative_import_path}' "
+            f"to '{remapped_path}' from '{current_key}'. Dependency not found in explorer sources."
+        )
+
     raise FileNotFoundError(
         f"\t[error] Could not resolve:- import '{relative_import_path}' from '{current_key}'. File not found."
     )
 
 
-def build_imports_map_and_extract_code(source_files) :
-    return build_import_graph_from_sources(source_files, resolve_import_path_explorer)
+def build_imports_map_and_extract_code(source_files, remappings=None):
+    resolver = lambda current_key, import_path, all_keys: resolve_import_path_explorer(
+        current_key, import_path, all_keys, remappings
+    )
+    return build_import_graph_from_sources(source_files, resolver)
 
 
 def flatten_files(sorted_paths: List[str], file_code_map: Dict[str, str]) -> str:
@@ -202,10 +233,10 @@ def solder_scan(contract_address:str, chain='eth', api_key:str='', output_path:s
     response_data = get_contract_source_from_explorer(contract_address, chain, api_key)
     source_code = response_data["source"]
     license = response_data["license"]
-    source_files = extract_source_files_from_explorer(source_code)
+    source_files, remappings = extract_source_files_from_explorer(source_code)
 
     # Soldering
-    imports_path_map, _, file_code_map = build_imports_map_and_extract_code(source_files)
+    imports_path_map, _, file_code_map = build_imports_map_and_extract_code(source_files, remappings)
     print(f"> Fusing {len(file_code_map)} Solidity file(s)")
     sorted_paths = topological_sort(imports_path_map)
     flattened = flatten_files(sorted_paths, file_code_map)

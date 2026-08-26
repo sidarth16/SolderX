@@ -96,7 +96,7 @@ def flatten_files(sorted_paths: List[str], file_code_map: Dict[str, str]) -> str
 
 
 def solder_folder(base_path:str, output_path:str=None, save_file:bool=True) -> str:
-    print(f"🛠️  Soldering Folder : {base_path} . . . ")
+    print(f"Soldering Folder : {base_path} . . . ")
     source_codes_map = collect_all_solidity_sources_from_folder(base_path)
     imports_path_map, _, file_code_map = build_imports_map_and_extract_code(source_codes_map)
     print(f"> Fusing {len(file_code_map)} Solidity file(s)")

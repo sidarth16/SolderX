@@ -8,11 +8,11 @@ from solderx import __version__
 
 def main():
     if "--help" not in sys.argv and "-h" not in sys.argv:
-        print(f"{COLORS['B_Y']}⚡️ SolderX{COLORS['RESET']} {COLORS['B_W']}– Melt Imports. Solder Solidity. Flatten Everything. 🔥\n{COLORS['RESET']}")
+        print(f"{COLORS['B_Y']}⚡️ SolderX{COLORS['RESET']} {COLORS['B_W']}– Melt Imports. Solder Solidity. Flatten Everything\n{COLORS['RESET']}")
 
     parser = argparse.ArgumentParser(
         description=(
-             "⚡️ SolderX – Fuse, Flatten & Forge Solidity Smart Contracts 🔥\n"
+             "⚡️ SolderX – Fuse, Flatten & Forge Solidity Smart Contracts \n"
              "The Solidity Flattener that melts your imports and solders your contracts into a single fused output."
         ),
         epilog=(

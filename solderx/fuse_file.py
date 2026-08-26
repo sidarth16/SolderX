@@ -69,7 +69,7 @@ def solder_file(filepath:str, remappings:dict=None, output_path:str=None, save_f
     Returns:
         str: Soldered Flat code.
     """
-    print(f"🛠️  Soldering File : {filepath} . . . ")
+    print(f"Soldering File : {filepath} . . . ")
     imports_path_map, _, file_code_map = build_imports_map_and_extract_code_file(filepath, remappings)
     print(f"> Fusing {len(file_code_map)} Solidity file(s) (including root)")
     sorted_paths = topological_sort(imports_path_map)

@@ -110,7 +110,7 @@ def extract_source_files_from_explorer(source_code: str) -> dict:
         try:
             parsed_code = json.loads(source_code)  # normal JSON
         except JSONDecodeError:
-            print("  Detected an already flattened source file (no JSON structure) !")
+            print("Detected an already flattened source file (no JSON structure).")
             return {"Flattened.sol": source_code.strip()}, {}
 
     if not isinstance(parsed_code, dict):
@@ -227,7 +227,7 @@ def extract_and_validate_chain_address(contract_address:str, chain='eth'):
 def solder_scan(contract_address:str, chain='eth', api_key:str='', output_path:str=None, save_file:bool=True):
     
     contract_address, chain = extract_and_validate_chain_address(contract_address, chain)
-    print(f"🌐  Soldering Contract : {contract_address} from {chain.upper()} . . . ")
+    print(f"Soldering Contract : {contract_address} from {chain.upper()} . . . ")
     
     # Extract from explorer
     response_data = get_contract_source_from_explorer(contract_address, chain, api_key)

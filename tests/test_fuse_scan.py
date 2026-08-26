@@ -6,6 +6,7 @@ from solderx import solder_scan
 from solderx.fuse_scan import (
     CHAIN_IDS,
     EXPLORER_API_URL,
+    extract_source_files_from_explorer,
     resolve_import_path_explorer,
 )
 
@@ -95,6 +96,99 @@ def test_solder_scan_multi_file_json(mock_get):
     assert "contract Main" in flat_code
     assert "contract Context" in flat_code
     assert "SPDX-License-Identifier" in flat_code
+
+
+@patch("solderx.fuse_scan.requests.get")
+def test_explorer_remapping_resolves_openzeppelin_import(mock_get):
+    response = {
+        "status": "1",
+        "message": "OK",
+        "result": [{
+            "SourceCode": json.dumps({
+                "language": "Solidity",
+                "sources": {
+                    "contracts/Main.sol": {
+                        "content": (
+                            'import "openzeppelin/proxy/ERC1967/ERC1967Proxy.sol";\n'
+                            "contract Main is ERC1967Proxy {}"
+                        )
+                    },
+                    "lib/openzeppelin-contracts/contracts/proxy/ERC1967/ERC1967Proxy.sol": {
+                        "content": "contract ERC1967Proxy {}"
+                    },
+                },
+                "settings": {
+                    "remappings": [
+                        "openzeppelin/=lib/openzeppelin-contracts/contracts/"
+                    ]
+                },
+            }),
+            "ContractName": "Main",
+            "CompilerVersion": "v0.8.20+commit.a1b79de6",
+            "LicenseType": "MIT",
+        }]
+    }
+    mock_get.return_value = _mock_response(response)
+
+    flattened = solder_scan(
+        "eth:0x1234567890123456789012345678901234567890",
+        save_file=False,
+    )
+
+    assert "contract ERC1967Proxy" in flattened
+    assert "contract Main is ERC1967Proxy" in flattened
+
+
+def test_explorer_source_parser_preserves_remappings():
+    source_files, remappings = extract_source_files_from_explorer(json.dumps({
+        "sources": {"Main.sol": {"content": "contract Main {}"}},
+        "settings": {"remappings": ["openzeppelin/=lib/openzeppelin-contracts/contracts/"]},
+    }))
+
+    assert source_files == {"Main.sol": "contract Main {}"}
+    assert remappings == {"openzeppelin/": "lib/openzeppelin-contracts/contracts/"}
+
+
+def test_explorer_source_parser_preserves_double_wrapped_json():
+    source = json.dumps({
+        "sources": {"Main.sol": {"content": "contract Main {}"}},
+        "settings": {"remappings": ["openzeppelin/=lib/openzeppelin-contracts/contracts/"]},
+    })
+
+    source_files, remappings = extract_source_files_from_explorer("{" + source + "}")
+
+    assert source_files == {"Main.sol": "contract Main {}"}
+    assert remappings == {"openzeppelin/": "lib/openzeppelin-contracts/contracts/"}
+
+
+@patch("solderx.fuse_scan.requests.get")
+def test_explorer_remapping_missing_target_reports_dependency(mock_get):
+    response = {
+        "status": "1",
+        "message": "OK",
+        "result": [{
+            "SourceCode": json.dumps({
+                "sources": {
+                    "contracts/Main.sol": {
+                        "content": 'import "openzeppelin/missing/Missing.sol";\ncontract Main {}'
+                    }
+                },
+                "settings": {
+                    "remappings": [
+                        "openzeppelin/=lib/openzeppelin-contracts/contracts/"
+                    ]
+                },
+            }),
+            "ContractName": "Main",
+        }]
+    }
+    mock_get.return_value = _mock_response(response)
+
+    with pytest.raises(FileNotFoundError, match="Dependency not found in explorer sources"):
+        solder_scan(
+            "eth:0x1234567890123456789012345678901234567890",
+            save_file=False,
+        )
 
 
 @patch("solderx.fuse_scan.requests.get")

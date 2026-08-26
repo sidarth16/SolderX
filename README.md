@@ -59,7 +59,7 @@ Most flatteners break on remappings, folder imports, or explorer parsings — **
 | **SPDX Header Merging**        | Deduplicates and merges license headers cleanly                                | ✅             |
 | **Import Deduplication**        | Ensures each dependency is flattened only once                                 | ✅             |
 | **Python API Support**          | Expose all core functions (`file`, `folder`, `scan`) via clean Python API      | ✅             |
-| **Themed CLI Interface**        | Minimal, expressive CLI with emoji-based output and colored logs               | ✅             |
+| **Professional CLI Interface**  | Clear status messages and concise error output                                  | ✅             |
 | **Fast & Lightweight**          | Built with Python, no heavy dependencies                                       | ✅             |
 | **Static Analysis Ready**       | Output works with all static analyzers                                | ✅             |
 | **Pluggable Design**            | Designed to extend — GitHub flattening, config aliasing, IDE plugins           |  Planned     |
@@ -86,7 +86,7 @@ Most flatteners break on remappings, folder imports, or explorer parsings — **
 | Deduplicated output                     | ✅             | ❌                          | ❌                      | ❌                  | ❌                 | ⚠️ Partial | ❌               |
 | Comment-aware import extraction         | ✅             | ❌                          | ❌                      | ❌                  | ❌                 | ❌          | ❌               |
 | Python API support                      | ✅             | ❌                          | ❌                      | ❌                  | ❌                 | ❌          | ✅               |
-| CLI with themed logs                    | ✅             | ⚠️ Basic                   | ❌                      | ❌                  | ✅ Basic           | ❌          | ⚠️ Minimal       |
+| CLI with clear status output            | ✅             | ⚠️ Basic                   | ❌                      | ❌                  | ✅ Basic           | ❌          | ⚠️ Minimal       |
 | Slither-compatible output               | ✅             | ✅                          | ⚠️ Maybe                | ⚠️ Maybe            | ⚠️ Maybe           | ⚠️ Maybe   | ✅               |
 | Chain/address validation (Etherscan)    | ✅             | ❌                          | ❌                      | ❌                  | ❌                 | ❌          | ❌               |
 | Future-ready: GitHub flattening, aliases| ✅ Planned     | ❌                          | ❌                      | ❌                  | ❌                 | ❌          | ⚠️ Limited       |
